@@ -26,16 +26,9 @@ const arrowTypes = {
   output: { label: "Вихід", color: "#f59e0b", position: "right" },
 };
 
-const initialNodes = [
-  {
-    id: "1",
-    type: "idef0",
-    position: { x: 400, y: 300 },
-    data: { label: "Нова функція", description: "" },
-  },
-];
-
-const initialEdges = [];
+function uid() {
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
 
 // Шаблон IDEF0 моделі з прикладом правильної структури
 const templateModel = {
@@ -297,6 +290,33 @@ const templateModel = {
   ],
 };
 
+// Функція для створення початкової моделі з шаблону
+function createInitialModelFromTemplate() {
+  const newNodes = templateModel.nodes.map((node) => ({
+    ...node,
+    id: uid(),
+  }));
+
+  const nodeIdMap = {};
+  templateModel.nodes.forEach((oldNode, index) => {
+    nodeIdMap[oldNode.id] = newNodes[index].id;
+  });
+
+  const newEdges = templateModel.edges.map((edge) => ({
+    ...edge,
+    id: uid(),
+    source: nodeIdMap[edge.source],
+    target: nodeIdMap[edge.target],
+  }));
+
+  return { nodes: newNodes, edges: newEdges };
+}
+
+// Використовуємо шаблон як початкову модель за замовчуванням
+const initialTemplateData = createInitialModelFromTemplate();
+const initialNodes = initialTemplateData.nodes;
+const initialEdges = initialTemplateData.edges;
+
 function IDEF0Node({ data, selected: isSelected }) {
   return (
     <div
@@ -372,10 +392,6 @@ const nodeTypes = {
   idef0: IDEF0Node,
 };
 
-function uid() {
-  return Math.random().toString(36).slice(2) + Date.now().toString(36);
-}
-
 export default function IDEF0Editor({ onSave, initialData, idef0Models = [], onLoad }) {
   const [nodes, setNodes, onNodesChange] = useNodesState(
     initialData?.nodes || initialNodes
@@ -402,30 +418,14 @@ export default function IDEF0Editor({ onSave, initialData, idef0Models = [], onL
       return;
     }
 
-    // Створюємо нові ID для шаблону, щоб уникнути конфліктів
-    const newNodes = templateModel.nodes.map((node) => ({
-      ...node,
-      id: uid(),
-      position: node.position, // Зберігаємо оригінальні позиції для кращого відображення
-    }));
-
-    // Створюємо нові edges з правильними ID
-    const nodeIdMap = {};
-    templateModel.nodes.forEach((oldNode, index) => {
-      nodeIdMap[oldNode.id] = newNodes[index].id;
-    });
-
-    const newEdges = templateModel.edges.map((edge) => ({
-      ...edge,
-      id: uid(),
-      source: nodeIdMap[edge.source],
-      target: nodeIdMap[edge.target],
-    }));
-
-    setNodes(newNodes);
-    setEdges(newEdges);
+    // Використовуємо функцію для створення нової моделі з шаблону
+    const templateData = createInitialModelFromTemplate();
+    
+    setNodes(templateData.nodes);
+    setEdges(templateData.edges);
     setSelectedNode(null);
     setSelectedEdge(null);
+    setSourceNode(null);
   }, [setNodes, setEdges]);
 
   const onConnect = useCallback(
