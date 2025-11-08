@@ -7,6 +7,8 @@ import ReactFlow, {
   useEdgesState,
   addEdge,
   MarkerType,
+  Handle,
+  Position,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Download, Upload, Save, Trash2, Plus, Edit2, FileDown, FileUp, FileText } from "lucide-react";
+import { Download, Upload, Save, Trash2, Plus, Edit2, FileDown, FileUp, FileText, LayoutTemplate } from "lucide-react";
 
 const arrowTypes = {
   input: { label: "Вхід", color: "#3b82f6", position: "left" },
@@ -35,13 +37,329 @@ const initialNodes = [
 
 const initialEdges = [];
 
-function IDEF0Node({ data, selected }) {
+// Шаблон IDEF0 моделі з прикладом правильної структури
+const templateModel = {
+  nodes: [
+    {
+      id: "template-1",
+      type: "idef0",
+      position: { x: 250, y: 300 },
+      data: { 
+        label: "Обробка замовлення", 
+        description: "Обробка вхідного замовлення клієнта" 
+      },
+    },
+    {
+      id: "template-2",
+      type: "idef0",
+      position: { x: 550, y: 300 },
+      data: { 
+        label: "Перевірка наявності", 
+        description: "Перевірка наявності товару на складі" 
+      },
+    },
+    {
+      id: "template-3",
+      type: "idef0",
+      position: { x: 850, y: 300 },
+      data: { 
+        label: "Формування відвантаження", 
+        description: "Підготовка товару до відправки" 
+      },
+    },
+    // Вхідні дані (ліворуч)
+    {
+      id: "template-input-1",
+      type: "idef0",
+      position: { x: 50, y: 300 },
+      data: { 
+        label: "Замовлення клієнта", 
+        description: "Вхідні дані" 
+      },
+    },
+    // Керування (зверху)
+    {
+      id: "template-control-1",
+      type: "idef0",
+      position: { x: 250, y: 100 },
+      data: { 
+        label: "Правила обробки", 
+        description: "Керування" 
+      },
+    },
+    {
+      id: "template-control-2",
+      type: "idef0",
+      position: { x: 550, y: 100 },
+      data: { 
+        label: "Правила перевірки", 
+        description: "Керування" 
+      },
+    },
+    // Механізми (знизу)
+    {
+      id: "template-mechanism-1",
+      type: "idef0",
+      position: { x: 250, y: 500 },
+      data: { 
+        label: "Система обробки", 
+        description: "Механізм" 
+      },
+    },
+    {
+      id: "template-mechanism-2",
+      type: "idef0",
+      position: { x: 550, y: 500 },
+      data: { 
+        label: "База даних складу", 
+        description: "Механізм" 
+      },
+    },
+    {
+      id: "template-mechanism-3",
+      type: "idef0",
+      position: { x: 850, y: 500 },
+      data: { 
+        label: "Система логістики", 
+        description: "Механізм" 
+      },
+    },
+    // Вихідні дані (праворуч)
+    {
+      id: "template-output-1",
+      type: "idef0",
+      position: { x: 1150, y: 300 },
+      data: { 
+        label: "Відвантажений товар", 
+        description: "Вихідні дані" 
+      },
+    },
+  ],
+  edges: [
+    // Входи (синій) - зліва направо
+    {
+      id: "template-edge-input-1",
+      source: "template-input-1",
+      target: "template-1",
+      type: "smoothstep",
+      label: "Замовлення",
+      labelStyle: { fill: arrowTypes.input.color, fontWeight: 600 },
+      style: { stroke: arrowTypes.input.color, strokeWidth: 2 },
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color: arrowTypes.input.color,
+      },
+      data: { type: "input" },
+    },
+    {
+      id: "template-edge-input-2",
+      source: "template-1",
+      target: "template-2",
+      type: "smoothstep",
+      label: "Оброблене замовлення",
+      labelStyle: { fill: arrowTypes.input.color, fontWeight: 600 },
+      style: { stroke: arrowTypes.input.color, strokeWidth: 2 },
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color: arrowTypes.input.color,
+      },
+      data: { type: "input" },
+    },
+    {
+      id: "template-edge-input-3",
+      source: "template-2",
+      target: "template-3",
+      type: "smoothstep",
+      label: "Інформація про товар",
+      labelStyle: { fill: arrowTypes.input.color, fontWeight: 600 },
+      style: { stroke: arrowTypes.input.color, strokeWidth: 2 },
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color: arrowTypes.input.color,
+      },
+      data: { type: "input" },
+    },
+    // Керування (фіолетовий) - зверху вниз
+    {
+      id: "template-edge-control-1",
+      source: "template-control-1",
+      target: "template-1",
+      type: "smoothstep",
+      label: "Правила обробки",
+      labelStyle: { fill: arrowTypes.control.color, fontWeight: 600 },
+      style: { stroke: arrowTypes.control.color, strokeWidth: 2 },
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color: arrowTypes.control.color,
+      },
+      data: { type: "control" },
+    },
+    {
+      id: "template-edge-control-2",
+      source: "template-control-2",
+      target: "template-2",
+      type: "smoothstep",
+      label: "Правила перевірки",
+      labelStyle: { fill: arrowTypes.control.color, fontWeight: 600 },
+      style: { stroke: arrowTypes.control.color, strokeWidth: 2 },
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color: arrowTypes.control.color,
+      },
+      data: { type: "control" },
+    },
+    // Механізми (зелений) - знизу вгору
+    {
+      id: "template-edge-mechanism-1",
+      source: "template-mechanism-1",
+      target: "template-1",
+      type: "smoothstep",
+      label: "Система обробки",
+      labelStyle: { fill: arrowTypes.mechanism.color, fontWeight: 600 },
+      style: { stroke: arrowTypes.mechanism.color, strokeWidth: 2 },
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color: arrowTypes.mechanism.color,
+      },
+      data: { type: "mechanism" },
+    },
+    {
+      id: "template-edge-mechanism-2",
+      source: "template-mechanism-2",
+      target: "template-2",
+      type: "smoothstep",
+      label: "База даних",
+      labelStyle: { fill: arrowTypes.mechanism.color, fontWeight: 600 },
+      style: { stroke: arrowTypes.mechanism.color, strokeWidth: 2 },
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color: arrowTypes.mechanism.color,
+      },
+      data: { type: "mechanism" },
+    },
+    {
+      id: "template-edge-mechanism-3",
+      source: "template-mechanism-3",
+      target: "template-3",
+      type: "smoothstep",
+      label: "Система логістики",
+      labelStyle: { fill: arrowTypes.mechanism.color, fontWeight: 600 },
+      style: { stroke: arrowTypes.mechanism.color, strokeWidth: 2 },
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color: arrowTypes.mechanism.color,
+      },
+      data: { type: "mechanism" },
+    },
+    // Виходи (помаранчевий) - зліва направо
+    {
+      id: "template-edge-output-1",
+      source: "template-1",
+      target: "template-2",
+      type: "smoothstep",
+      label: "Оброблене замовлення",
+      labelStyle: { fill: arrowTypes.output.color, fontWeight: 600 },
+      style: { stroke: arrowTypes.output.color, strokeWidth: 2 },
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color: arrowTypes.output.color,
+      },
+      data: { type: "output" },
+    },
+    {
+      id: "template-edge-output-2",
+      source: "template-2",
+      target: "template-3",
+      type: "smoothstep",
+      label: "Підтверджене замовлення",
+      labelStyle: { fill: arrowTypes.output.color, fontWeight: 600 },
+      style: { stroke: arrowTypes.output.color, strokeWidth: 2 },
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color: arrowTypes.output.color,
+      },
+      data: { type: "output" },
+    },
+    {
+      id: "template-edge-output-3",
+      source: "template-3",
+      target: "template-output-1",
+      type: "smoothstep",
+      label: "Відвантажений товар",
+      labelStyle: { fill: arrowTypes.output.color, fontWeight: 600 },
+      style: { stroke: arrowTypes.output.color, strokeWidth: 2 },
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color: arrowTypes.output.color,
+      },
+      data: { type: "output" },
+    },
+  ],
+};
+
+function IDEF0Node({ data, selected: isSelected }) {
   return (
     <div
-      className={`px-4 py-3 border-2 rounded min-w-[120px] text-center bg-white ${
-        selected ? "border-blue-500" : "border-gray-800"
+      className={`px-4 py-3 border-2 rounded min-w-[120px] text-center bg-white relative ${
+        isSelected ? "border-blue-500 shadow-lg" : "border-gray-800"
       }`}
     >
+      {/* Handle для входів (ліворуч) - можна приймати та віддавати */}
+      <Handle
+        type="target"
+        position={Position.Left}
+        id="left-in"
+        style={{ background: arrowTypes.input.color, width: 10, height: 10 }}
+      />
+      <Handle
+        type="source"
+        position={Position.Left}
+        id="left-out"
+        style={{ background: arrowTypes.input.color, width: 10, height: 10 }}
+      />
+      
+      {/* Handle для керування (зверху) - можна приймати та віддавати */}
+      <Handle
+        type="target"
+        position={Position.Top}
+        id="top-in"
+        style={{ background: arrowTypes.control.color, width: 10, height: 10 }}
+      />
+      <Handle
+        type="source"
+        position={Position.Top}
+        id="top-out"
+        style={{ background: arrowTypes.control.color, width: 10, height: 10 }}
+      />
+      
+      {/* Handle для механізмів (знизу) - можна приймати та віддавати */}
+      <Handle
+        type="target"
+        position={Position.Bottom}
+        id="bottom-in"
+        style={{ background: arrowTypes.mechanism.color, width: 10, height: 10 }}
+      />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        id="bottom-out"
+        style={{ background: arrowTypes.mechanism.color, width: 10, height: 10 }}
+      />
+      
+      {/* Handle для виходів (праворуч) - можна приймати та віддавати */}
+      <Handle
+        type="target"
+        position={Position.Right}
+        id="right-in"
+        style={{ background: arrowTypes.output.color, width: 10, height: 10 }}
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="right-out"
+        style={{ background: arrowTypes.output.color, width: 10, height: 10 }}
+      />
+      
       <div className="font-semibold text-sm">{data.label || "Функція"}</div>
       {data.description && (
         <div className="text-xs text-gray-500 mt-1">{data.description}</div>
@@ -67,6 +385,7 @@ export default function IDEF0Editor({ onSave, initialData, idef0Models = [], onL
   );
   const [selectedNode, setSelectedNode] = useState(null);
   const [selectedEdge, setSelectedEdge] = useState(null);
+  const [sourceNode, setSourceNode] = useState(null); // Для створення зв'язків
   const [newArrowType, setNewArrowType] = useState("input");
   const [newArrowLabel, setNewArrowLabel] = useState("");
   const fileInputRef = useRef(null);
@@ -76,6 +395,37 @@ export default function IDEF0Editor({ onSave, initialData, idef0Models = [], onL
       setNodes(model.nodes);
       setEdges(model.edges);
     }
+  }, [setNodes, setEdges]);
+
+  const loadTemplate = useCallback(() => {
+    if (!confirm("Завантажити шаблон? Поточні зміни буде втрачено.")) {
+      return;
+    }
+
+    // Створюємо нові ID для шаблону, щоб уникнути конфліктів
+    const newNodes = templateModel.nodes.map((node) => ({
+      ...node,
+      id: uid(),
+      position: node.position, // Зберігаємо оригінальні позиції для кращого відображення
+    }));
+
+    // Створюємо нові edges з правильними ID
+    const nodeIdMap = {};
+    templateModel.nodes.forEach((oldNode, index) => {
+      nodeIdMap[oldNode.id] = newNodes[index].id;
+    });
+
+    const newEdges = templateModel.edges.map((edge) => ({
+      ...edge,
+      id: uid(),
+      source: nodeIdMap[edge.source],
+      target: nodeIdMap[edge.target],
+    }));
+
+    setNodes(newNodes);
+    setEdges(newEdges);
+    setSelectedNode(null);
+    setSelectedEdge(null);
   }, [setNodes, setEdges]);
 
   const onConnect = useCallback(
@@ -145,23 +495,92 @@ export default function IDEF0Editor({ onSave, initialData, idef0Models = [], onL
     [setNodes]
   );
 
-  const onNodesSelect = useCallback((event) => {
-    if (event.nodes.length > 0) {
-      setSelectedNode(event.nodes[0].id);
-      setSelectedEdge(null);
+  const onNodeClick = useCallback((event, node) => {
+    // Якщо натиснуто з Ctrl/Cmd, вибираємо як source для створення зв'язку
+    if (event.ctrlKey || event.metaKey) {
+      if (sourceNode === node.id) {
+        setSourceNode(null);
+      } else if (sourceNode && sourceNode !== node.id) {
+        // Створюємо зв'язок від sourceNode до node
+        const edgeType = newArrowType;
+        const newEdge = {
+          id: uid(),
+          source: sourceNode,
+          target: node.id,
+          type: "smoothstep",
+          label: newArrowLabel || arrowTypes[edgeType].label,
+          labelStyle: { fill: arrowTypes[edgeType].color, fontWeight: 600 },
+          style: { stroke: arrowTypes[edgeType].color, strokeWidth: 2 },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            color: arrowTypes[edgeType].color,
+          },
+          data: { type: edgeType },
+        };
+        setEdges((eds) => addEdge(newEdge, eds));
+        setSourceNode(null);
+        setNewArrowLabel("");
+      } else {
+        setSourceNode(node.id);
+      }
     } else {
-      setSelectedNode(null);
+      setSelectedNode(node.id);
+      setSelectedEdge(null);
+      setSourceNode(null);
+      // Оновлюємо nodes, щоб показати вибраний стан
+      setNodes((nds) =>
+        nds.map((n) => ({
+          ...n,
+          selected: n.id === node.id,
+        }))
+      );
+      // Скидаємо вибір для всіх edges
+      setEdges((eds) =>
+        eds.map((e) => ({
+          ...e,
+          selected: false,
+        }))
+      );
     }
-  }, []);
+  }, [setNodes, setEdges, sourceNode, newArrowType, newArrowLabel]);
 
-  const onEdgesSelect = useCallback((event) => {
-    if (event.edges.length > 0) {
-      setSelectedEdge(event.edges[0].id);
-      setSelectedNode(null);
-    } else {
-      setSelectedEdge(null);
-    }
-  }, []);
+  const onEdgeClick = useCallback((event, edge) => {
+    setSelectedEdge(edge.id);
+    setSelectedNode(null);
+    // Оновлюємо edges, щоб показати вибраний стан
+    setEdges((eds) =>
+      eds.map((e) => ({
+        ...e,
+        selected: e.id === edge.id,
+      }))
+    );
+    // Скидаємо вибір для всіх nodes
+    setNodes((nds) =>
+      nds.map((n) => ({
+        ...n,
+        selected: false,
+      }))
+    );
+  }, [setNodes, setEdges]);
+
+  const onPaneClick = useCallback(() => {
+    setSelectedNode(null);
+    setSelectedEdge(null);
+    setSourceNode(null); // Скидаємо source при кліку на порожню область
+    // Скидаємо вибір для всіх nodes та edges
+    setNodes((nds) =>
+      nds.map((n) => ({
+        ...n,
+        selected: false,
+      }))
+    );
+    setEdges((eds) =>
+      eds.map((e) => ({
+        ...e,
+        selected: false,
+      }))
+    );
+  }, [setNodes, setEdges]);
 
   const exportModel = useCallback(() => {
     const data = {
@@ -250,6 +669,10 @@ export default function IDEF0Editor({ onSave, initialData, idef0Models = [], onL
           <h2 className="text-xl font-bold">IDEF0 Редактор</h2>
         </div>
         <div className="flex items-center gap-2">
+          <Button onClick={loadTemplate} variant="outline" size="sm">
+            <LayoutTemplate className="w-4 h-4 mr-2" />
+            Завантажити шаблон
+          </Button>
           <Button onClick={addNode} variant="outline" size="sm">
             <Plus className="w-4 h-4 mr-2" />
             Додати блок
@@ -345,8 +768,19 @@ export default function IDEF0Editor({ onSave, initialData, idef0Models = [], onL
                     placeholder="Назва стрілки"
                   />
                 </div>
-                <div className="text-xs text-gray-500">
-                  З'єднайте два блоки, щоб створити стрілку вибраного типу
+                <div className="text-xs text-gray-500 space-y-2">
+                  <div className="font-semibold">Як створити зв'язок:</div>
+                  <div>1. Виберіть тип стрілки</div>
+                  <div>2. Натисніть на блок (джерело) з Ctrl/Cmd</div>
+                  <div>3. Натисніть на інший блок (призначення)</div>
+                  <div className="pt-2 border-t">
+                    Або перетягніть від ручки одного блоку до іншого
+                  </div>
+                  {sourceNode && (
+                    <div className="pt-2 border-t text-blue-600 font-semibold">
+                      Вибрано джерело. Натисніть на блок призначення з Ctrl/Cmd
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -434,11 +868,17 @@ export default function IDEF0Editor({ onSave, initialData, idef0Models = [], onL
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
-            onNodesSelect={onNodesSelect}
-            onEdgesSelect={onEdgesSelect}
+            onNodeClick={onNodeClick}
+            onEdgeClick={onEdgeClick}
+            onPaneClick={onPaneClick}
             nodeTypes={nodeTypes}
+            connectionLineStyle={{ stroke: arrowTypes[newArrowType].color, strokeWidth: 2 }}
             fitView
             className="bg-gray-50"
+            defaultEdgeOptions={{
+              type: "smoothstep",
+              animated: false,
+            }}
           >
             <Background />
             <Controls />
